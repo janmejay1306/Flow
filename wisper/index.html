@@ -1,0 +1,611 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Ship Log — A quiet place to track what you build</title>
+  <meta name="description" content="Ship Log is a calm daily builder journal. Log what you ship, keep your streak alive, celebrate small wins." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&display=swap" rel="stylesheet" />
+  <style>
+    /* ── Reset ── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --font: 'DM Sans', system-ui, -apple-system, sans-serif;
+
+      /* Warm palette */
+      --bg:         #F5F0E8;
+      --bg-subtle:  #EDE8DE;
+      --surface:    #FFFDF9;
+      --text:       #2C2A25;
+      --text-soft:  #6B665C;
+      --text-faint: #9E9788;
+      --border:     #E5E0D5;
+      --border-light:#EDEADF;
+
+      /* Accent — soft lime */
+      --accent:       #B8E06A;
+      --accent-hover: #A8D254;
+      --accent-text:  #2C2A25;
+
+      /* Tag tints — muted, harmonious */
+      --tag-feature-bg: #D6EDC0;  --tag-feature-fg: #4A6B2A;
+      --tag-fix-bg:     #F0E4C8;  --tag-fix-fg:     #7A6530;
+      --tag-learning-bg:#D8E8DC;  --tag-learning-fg: #3D6B4A;
+      --tag-idea-bg:    #E6DDD0;  --tag-idea-fg:    #6B5940;
+
+      --shadow-sm:  0 1px 2px rgba(44,42,37,.04), 0 1px 4px rgba(44,42,37,.03);
+      --shadow-card:0 2px 8px rgba(44,42,37,.05), 0 1px 3px rgba(44,42,37,.04);
+      --shadow-lift:0 4px 16px rgba(44,42,37,.07), 0 2px 4px rgba(44,42,37,.04);
+
+      --radius:    14px;
+      --radius-sm: 10px;
+      --radius-xs: 7px;
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: var(--font);
+      color: var(--text);
+      background: var(--bg);
+      min-height: 100vh;
+      line-height: 1.6;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
+
+    /* ── Layout ── */
+    .container {
+      max-width: 680px;
+      margin: 0 auto;
+      padding: 48px 24px 96px;
+    }
+
+    /* ── Header ── */
+    .header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 40px;
+    }
+
+    .wordmark {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 1.5rem;
+      font-weight: 700;
+      letter-spacing: -.03em;
+      color: var(--text);
+      user-select: none;
+    }
+
+    /* Tiny leaf dot motif */
+    .wordmark::before {
+      content: '';
+      display: inline-block;
+      width: 10px;
+      height: 10px;
+      background: var(--accent);
+      border-radius: 50% 50% 50% 2px;
+      flex-shrink: 0;
+    }
+
+    .streak-pill {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      padding: 5px 14px;
+      border-radius: 100px;
+      font-size: .8rem;
+      font-weight: 600;
+      color: var(--text-soft);
+      letter-spacing: -.01em;
+      transition: box-shadow .2s ease;
+    }
+    .streak-pill:hover {
+      box-shadow: var(--shadow-sm);
+    }
+    .streak-pill .streak-num {
+      color: var(--text);
+      font-weight: 700;
+    }
+
+    /* ── Form Card ── */
+    .form-card {
+      background: var(--surface);
+      border: 1px solid var(--border-light);
+      border-radius: var(--radius);
+      padding: 28px;
+      box-shadow: var(--shadow-card);
+      margin-bottom: 40px;
+    }
+
+    .form-heading {
+      font-size: .95rem;
+      font-weight: 600;
+      color: var(--text);
+      margin-bottom: 20px;
+    }
+
+    .form-grid {
+      display: grid;
+      gap: 16px;
+    }
+
+    .field-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 14px;
+    }
+
+    .field label {
+      display: block;
+      font-size: .72rem;
+      font-weight: 600;
+      color: var(--text-faint);
+      text-transform: uppercase;
+      letter-spacing: .06em;
+      margin-bottom: 6px;
+    }
+
+    input[type="text"],
+    textarea,
+    select {
+      width: 100%;
+      padding: 10px 14px;
+      border: 1.5px solid var(--border);
+      border-radius: var(--radius-xs);
+      font-family: var(--font);
+      font-size: .9rem;
+      color: var(--text);
+      background: var(--bg);
+      outline: none;
+      transition: border-color .2s ease, box-shadow .2s ease, background .2s ease;
+      -webkit-appearance: none;
+    }
+    input[type="text"]::placeholder,
+    textarea::placeholder {
+      color: var(--text-faint);
+    }
+
+    input[type="text"]:focus,
+    textarea:focus,
+    select:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(184,224,106,.22);
+      background: var(--surface);
+    }
+
+    textarea {
+      resize: vertical;
+      min-height: 84px;
+      line-height: 1.55;
+    }
+
+    select {
+      cursor: pointer;
+      color: var(--text-soft);
+    }
+    select:focus { color: var(--text); }
+
+    /* ── Buttons ── */
+    .form-footer {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-top: 4px;
+    }
+
+    .btn-primary {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 10px 24px;
+      background: var(--accent);
+      color: var(--accent-text);
+      font-family: var(--font);
+      font-size: .88rem;
+      font-weight: 600;
+      border: none;
+      border-radius: var(--radius-xs);
+      cursor: pointer;
+      transition: background .2s ease, transform .15s ease, box-shadow .2s ease;
+      box-shadow: var(--shadow-sm);
+      user-select: none;
+    }
+    .btn-primary:hover {
+      background: var(--accent-hover);
+      box-shadow: var(--shadow-card);
+      transform: translateY(-1px);
+    }
+    .btn-primary:active { transform: translateY(0); }
+
+    .btn-clear {
+      background: none;
+      border: 1px solid var(--border);
+      color: var(--text-faint);
+      font-family: var(--font);
+      font-size: .78rem;
+      font-weight: 500;
+      padding: 6px 14px;
+      border-radius: var(--radius-xs);
+      cursor: pointer;
+      transition: color .2s ease, border-color .2s ease;
+    }
+    .btn-clear:hover {
+      color: var(--text-soft);
+      border-color: var(--text-faint);
+    }
+
+    /* ── Section title ── */
+    .section-title {
+      font-size: .82rem;
+      font-weight: 600;
+      color: var(--text-faint);
+      text-transform: uppercase;
+      letter-spacing: .06em;
+      margin-bottom: 16px;
+    }
+
+    /* ── Entry cards ── */
+    .entry {
+      background: var(--surface);
+      border: 1px solid var(--border-light);
+      border-radius: var(--radius);
+      padding: 20px 24px;
+      margin-bottom: 12px;
+      box-shadow: var(--shadow-sm);
+      transition: box-shadow .2s ease, transform .2s ease;
+    }
+    .entry:hover {
+      box-shadow: var(--shadow-card);
+      transform: translateY(-1px);
+    }
+
+    .entry.is-new {
+      animation: entryIn .35s ease both;
+    }
+    @keyframes entryIn {
+      from { opacity: 0; transform: translateY(8px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    .entry-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 6px;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .entry-project {
+      font-weight: 600;
+      font-size: .95rem;
+      color: var(--text);
+    }
+
+    .entry-date {
+      font-size: .76rem;
+      font-weight: 500;
+      color: var(--text-faint);
+      letter-spacing: -.01em;
+    }
+
+    .entry-note {
+      font-size: .88rem;
+      color: var(--text-soft);
+      line-height: 1.55;
+      margin-bottom: 12px;
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
+
+    /* ── Tag chips ── */
+    .tag {
+      display: inline-block;
+      padding: 3px 11px;
+      border-radius: 100px;
+      font-size: .7rem;
+      font-weight: 600;
+      letter-spacing: .02em;
+      text-transform: uppercase;
+    }
+    .tag-feature  { background: var(--tag-feature-bg);  color: var(--tag-feature-fg);  }
+    .tag-fix      { background: var(--tag-fix-bg);      color: var(--tag-fix-fg);      }
+    .tag-learning { background: var(--tag-learning-bg); color: var(--tag-learning-fg); }
+    .tag-idea     { background: var(--tag-idea-bg);     color: var(--tag-idea-fg);     }
+
+    /* ── Empty state ── */
+    .empty {
+      text-align: center;
+      padding: 56px 20px;
+      color: var(--text-faint);
+    }
+    .empty-dot {
+      display: inline-block;
+      width: 36px;
+      height: 36px;
+      background: var(--border-light);
+      border-radius: 50% 50% 50% 6px;
+      margin-bottom: 16px;
+    }
+    .empty p {
+      font-size: .92rem;
+      font-weight: 500;
+      line-height: 1.5;
+    }
+
+    /* ── Toast ── */
+    .toast {
+      position: fixed;
+      bottom: 32px;
+      left: 50%;
+      transform: translateX(-50%) translateY(60px);
+      background: var(--text);
+      color: var(--bg);
+      padding: 10px 22px;
+      border-radius: 100px;
+      font-family: var(--font);
+      font-size: .84rem;
+      font-weight: 600;
+      box-shadow: var(--shadow-lift);
+      opacity: 0;
+      pointer-events: none;
+      transition: transform .3s cubic-bezier(.4,0,.2,1), opacity .3s ease;
+      z-index: 100;
+    }
+    .toast.visible {
+      opacity: 1;
+      transform: translateX(-50%) translateY(0);
+    }
+
+    /* ── Responsive ── */
+    @media (max-width: 520px) {
+      .container { padding: 32px 16px 72px; }
+      .form-card { padding: 22px 18px; }
+      .entry { padding: 16px 18px; }
+      .field-row { grid-template-columns: 1fr; }
+      .wordmark { font-size: 1.3rem; }
+      .header { margin-bottom: 28px; }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+
+    <!-- Header -->
+    <header class="header" id="header">
+      <div class="wordmark">Ship Log</div>
+      <div class="streak-pill" id="streakPill">
+        <span class="streak-num" id="streakNum">0</span>-day streak
+      </div>
+    </header>
+
+    <!-- Form -->
+    <div class="form-card" id="formCard">
+      <p class="form-heading">What did you ship today?</p>
+      <form id="entryForm" class="form-grid" novalidate>
+
+        <div class="field-row">
+          <div class="field">
+            <label for="projectInput">Project</label>
+            <input type="text" id="projectInput" placeholder="e.g. Ship Log" required />
+          </div>
+          <div class="field">
+            <label for="tagSelect">Tag</label>
+            <select id="tagSelect">
+              <option value="Feature">Feature</option>
+              <option value="Fix">Fix</option>
+              <option value="Learning">Learning</option>
+              <option value="Idea">Idea</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="field">
+          <label for="noteInput">What I shipped</label>
+          <textarea id="noteInput" placeholder="A short note about what you built, fixed, or learned…" required></textarea>
+        </div>
+
+        <div class="form-footer">
+          <button type="submit" class="btn-primary" id="submitBtn">Log it →</button>
+          <button type="button" class="btn-clear" id="clearAllBtn">Clear all</button>
+        </div>
+
+      </form>
+    </div>
+
+    <!-- Entries -->
+    <section id="entriesSection">
+      <p class="section-title" id="sectionTitle">Log</p>
+      <div id="entryList"></div>
+    </section>
+
+  </div>
+
+  <!-- Toast -->
+  <div class="toast" id="toast"></div>
+
+  <script>
+    /* ───── Constants & DOM ───── */
+    const KEY       = 'shiplog_entries';
+    const form      = document.getElementById('entryForm');
+    const projectIn = document.getElementById('projectInput');
+    const noteIn    = document.getElementById('noteInput');
+    const tagSel    = document.getElementById('tagSelect');
+    const listEl    = document.getElementById('entryList');
+    const streakNum = document.getElementById('streakNum');
+    const clearBtn  = document.getElementById('clearAllBtn');
+    const toastEl   = document.getElementById('toast');
+
+    /* ───── Helpers ───── */
+    function today() {
+      const d = new Date();
+      return [
+        d.getFullYear(),
+        String(d.getMonth() + 1).padStart(2, '0'),
+        String(d.getDate()).padStart(2, '0')
+      ].join('-');
+    }
+
+    function uid() {
+      return Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
+    }
+
+    function esc(str) {
+      const el = document.createElement('span');
+      el.textContent = str;
+      return el.innerHTML;
+    }
+
+    function friendlyDate(iso) {
+      const t = today();
+      if (iso === t) return 'Today';
+      // Yesterday check
+      const d = new Date();
+      d.setDate(d.getDate() - 1);
+      const yest = [
+        d.getFullYear(),
+        String(d.getMonth() + 1).padStart(2, '0'),
+        String(d.getDate()).padStart(2, '0')
+      ].join('-');
+      if (iso === yest) return 'Yesterday';
+      // Otherwise format nicely
+      const parts = iso.split('-');
+      const dt = new Date(+parts[0], +parts[1] - 1, +parts[2]);
+      return dt.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+    }
+
+    /* ───── Persistence ───── */
+    function load() {
+      try { return JSON.parse(localStorage.getItem(KEY)) || []; }
+      catch { return []; }
+    }
+    function save(entries) {
+      localStorage.setItem(KEY, JSON.stringify(entries));
+    }
+
+    /* ───── Streak ───── */
+    function calcStreak(entries) {
+      if (!entries.length) return 0;
+
+      const dates = new Set(entries.map(e => e.date));
+      const sorted = Array.from(dates).sort().reverse();
+
+      // Streak must anchor on today or the most recent entry day
+      const anchor = sorted[0] === today() ? today() : sorted[0];
+      const anchorDate = new Date(anchor + 'T00:00:00');
+
+      let streak = 0;
+      for (let i = 0; i < 36500; i++) {
+        const d = new Date(anchorDate);
+        d.setDate(d.getDate() - i);
+        const key = d.toISOString().slice(0, 10);
+        if (dates.has(key)) {
+          streak++;
+        } else {
+          break;
+        }
+      }
+      return streak;
+    }
+
+    /* ───── Render ───── */
+    function render(entries, animateFirst) {
+      // Streak
+      streakNum.textContent = calcStreak(entries);
+
+      // Empty state
+      if (!entries.length) {
+        listEl.innerHTML =
+          '<div class="empty">' +
+            '<div class="empty-dot"></div>' +
+            '<p>Nothing logged yet.<br>Ship something small today.</p>' +
+          '</div>';
+        return;
+      }
+
+      // Sort newest first
+      const sorted = [...entries].sort((a, b) => {
+        if (b.date !== a.date) return b.date.localeCompare(a.date);
+        return b.ts - a.ts;
+      });
+
+      listEl.innerHTML = sorted.map((e, i) =>
+        '<div class="entry' + (animateFirst && i === 0 ? ' is-new' : '') + '">' +
+          '<div class="entry-header">' +
+            '<span class="entry-project">' + esc(e.project) + '</span>' +
+            '<span class="entry-date">' + friendlyDate(e.date) + '</span>' +
+          '</div>' +
+          '<p class="entry-note">' + esc(e.note) + '</p>' +
+          '<span class="tag tag-' + e.tag.toLowerCase() + '">' + e.tag + '</span>' +
+        '</div>'
+      ).join('');
+    }
+
+    /* ───── Toast ───── */
+    let _tt;
+    function toast(msg) {
+      clearTimeout(_tt);
+      toastEl.textContent = msg;
+      toastEl.classList.add('visible');
+      _tt = setTimeout(() => toastEl.classList.remove('visible'), 2000);
+    }
+
+    /* ───── Events ───── */
+    form.addEventListener('submit', function (e) {
+      e.preventDefault();
+
+      const project = projectIn.value.trim();
+      const note    = noteIn.value.trim();
+      const tag     = tagSel.value;
+
+      if (!project || !note) {
+        toast('Fill in both fields to log an entry.');
+        return;
+      }
+
+      const entry = {
+        id: uid(),
+        date: today(),
+        project: project,
+        note: note,
+        tag: tag,
+        ts: Date.now()
+      };
+
+      const entries = load();
+      entries.push(entry);
+      save(entries);
+      render(entries, true);
+
+      form.reset();
+      projectIn.focus();
+      toast('Logged ✓');
+    });
+
+    clearBtn.addEventListener('click', function () {
+      if (!load().length) {
+        toast('Nothing to clear.');
+        return;
+      }
+      if (confirm('Remove all entries? This can\'t be undone.')) {
+        save([]);
+        render([], false);
+        toast('All cleared.');
+      }
+    });
+
+    /* ───── Init ───── */
+    render(load(), false);
+  </script>
+</body>
+</html>
